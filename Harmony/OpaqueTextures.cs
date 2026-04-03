@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,7 +66,11 @@ public static class OpaqueTextures
     {
         for (var i = 0; i < BlockTextureData.list.Length; i++)
             if (BlockTextureData.list[i] == null) return i;
-        throw new Exception("No more free Paint IDs");
+        // PaintUnlocked: grow instead of throw
+        var oldLen = BlockTextureData.list.Length;
+        Array.Resize(ref BlockTextureData.list, oldLen + 256);
+        Log.Out("[PaintUnlocked] BlockTextureData.list resized {0} -> {1}", oldLen, BlockTextureData.list.Length);
+        return oldLen;
     }
 
     private static ushort PatchAtlasBlocks(MeshDescription mesh, TextureConfig tex)
@@ -100,7 +104,26 @@ public static class OpaqueTextures
         var opaqueAtlas = opaque.textureAtlas as TextureAtlasBlocks;
         if (builtinOpaques == -1 && opaqueAtlas.diffuseTexture != null)
             builtinOpaques = (opaqueAtlas.diffuseTexture as Texture2DArray).depth;
+        // PaintUnlocked: dedicated server has no GPU atlas
+        if (builtinOpaques == -1)
+        {
+            builtinOpaques = 0;
+            Log.Out("[PaintUnlocked] Dedicated server: no diffuse texture, builtinOpaques set to 0 (tiling.index unused on server)");
+        }
+        // PaintUnlocked: pad builtinOpaques to 512 on client so tiling.index aligns with paint ID floor
+        // TEMP DISABLED: builtinOpaques padding
+        // if (builtinOpaques > 0 && builtinOpaques < 512) builtinOpaques = 512;
         var textures = OpaqueConfigs.Values.ToList();
+        // PaintUnlocked: pre-resize BlockTextureData.list
+        var idFloor = System.Math.Max(builtinOpaques, 512);
+        var required = idFloor + textures.Count + 1;
+        if (BlockTextureData.list != null && required > BlockTextureData.list.Length)
+        {
+            var oldLen2 = BlockTextureData.list.Length;
+            var newLen2 = ((required / 256) + 1) * 256;
+            Array.Resize(ref BlockTextureData.list, newLen2);
+            Log.Out("[PaintUnlocked] Pre-resized BlockTextureData.list {0} -> {1}", oldLen2, newLen2);
+        }
         if (opaque == null) throw new Exception("MESH MISSING");
         var atlas = opaque.textureAtlas as TextureAtlasBlocks;
         if (atlas == null) throw new Exception("INVALID ATLAS TYPE");
@@ -310,7 +333,7 @@ public static class OpaqueTextures
         if (GameManager.IsDedicatedServer) return texture;
         if (!texture.name.StartsWith("ta_opaque")) return texture;
         var copy = ResizeTextureArray(cmds, texture,
-            texture.depth + OpaquesAdded, true, true);
+            System.Math.Max(texture.depth, builtinOpaques) + OpaquesAdded + 4, true, true);
         foreach (TextureConfig cfg in OpaqueConfigs.Values)
             for (int i = 0; i < cfg.Length; i += 1)
                 PatchTextures(cmds, copy, lookup(cfg), cfg.tiling, i, fallback);
