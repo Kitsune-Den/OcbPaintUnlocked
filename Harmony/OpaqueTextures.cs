@@ -56,7 +56,67 @@ public static class OpaqueTextures
     public class BlockTexturesFromXMLCreateBlockTexturesPrefix
     {
         public static void Prefix(XmlFile _xmlFile)
-            => ParseOpaqueConfig(_xmlFile.XmlDoc.Root);
+        {
+            ParseOpaqueConfig(_xmlFile.XmlDoc.Root);
+            // PaintUnlocked: Pre-size BlockTextureData.list EARLY — before any
+            // chunk deserialization can access high paint IDs from saved data.
+            // Without this, reloading a save with 255+ textures crashes because
+            // chunks reference paint IDs that exceed the vanilla-sized array.
+            EarlyResizeBlockTextureList();
+        }
+    }
+
+    static void EarlyResizeBlockTextureList()
+    {
+        // PaintUnlocked supports up to paint ID 1023 (10-bit).
+        // On save reload, the game may access high paint IDs from saved chunks
+        // BEFORE our other patches fire. Ensure the list is always >= 1024.
+        const int minSize = 1024;
+        if (BlockTextureData.list == null)
+        {
+            BlockTextureData.list = new BlockTextureData[minSize];
+            Log.Out("[PaintUnlocked] Created BlockTextureData.list (was null) size={0}", minSize);
+            return;
+        }
+        var required = System.Math.Max(minSize, 512 + OpaqueConfigs.Count + 256);
+        if (BlockTextureData.list.Length < required)
+        {
+            var oldLen = BlockTextureData.list.Length;
+            Array.Resize(ref BlockTextureData.list, required);
+            Log.Out("[PaintUnlocked] Early pre-resize BlockTextureData.list {0} -> {1} (save reload protection)",
+                oldLen, required);
+        }
+    }
+
+    // ####################################################################
+    // PaintUnlocked: Safety net — if ANY code tries to access
+    // BlockTextureData.list with an index >= Length, auto-grow.
+    // This catches chunk deserialization that runs before our
+    // InitOpaqueConfig has a chance to properly size the array.
+    // ####################################################################
+
+    [HarmonyPatch(typeof(BlockTextureData), nameof(BlockTextureData.Init))]
+    static class BlockTextureDataInitPatch
+    {
+        static bool Prefix(BlockTextureData __instance)
+        {
+            if (BlockTextureData.list == null)
+            {
+                BlockTextureData.list = new BlockTextureData[System.Math.Max(1024, __instance.ID + 256)];
+                Log.Out("[PaintUnlocked] Created BlockTextureData.list on-demand for ID {0}, size={1}",
+                    __instance.ID, BlockTextureData.list.Length);
+                return true;
+            }
+            if (__instance.ID >= BlockTextureData.list.Length)
+            {
+                var oldLen = BlockTextureData.list.Length;
+                var newLen = System.Math.Max(1024, (((__instance.ID + 1) / 256) + 1) * 256);
+                Array.Resize(ref BlockTextureData.list, newLen);
+                Log.Out("[PaintUnlocked] Safety resize for ID {0}: {1} -> {2}",
+                    __instance.ID, oldLen, newLen);
+            }
+            return true; // continue with original Init
+        }
     }
 
     // ####################################################################
