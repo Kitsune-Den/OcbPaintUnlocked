@@ -1,0 +1,28 @@
+    // Only get this number once, before we applied any patches
+    // Later on we can't get this again as we free original array
+    static int builtinOpaques = -1;
+
+    // Hooked via `BlockTexturesFromXML.CreateBlockTextures`
+    static void InitOpaqueConfig()
+    {
+        var opaque = MeshDescription.meshes[MeshDescription.MESH_OPAQUE];
+        var opaqueAtlas = opaque.textureAtlas as TextureAtlasBlocks;
+        if (builtinOpaques == -1 && opaqueAtlas.diffuseTexture != null)
+            builtinOpaques = (opaqueAtlas.diffuseTexture as Texture2DArray).depth;
+        var textures = OpaqueConfigs.Values.ToList();
+        if (opaque == null) throw new Exception("MESH MISSING");
+        var atlas = opaque.textureAtlas as TextureAtlasBlocks;
+        if (atlas == null) throw new Exception("INVALID ATLAS TYPE");
+        // PaintUnlocked: pre-resize BlockTextureData.list before the loop so that
+        // tiling.index assignments don't go out of bounds when builtinOpaques > list.Length
+        var required = builtinOpaques + textures.Count + 1;
+        if (BlockTextureData.list != null && required > BlockTextureData.list.Length)
+        {
+            var oldLen = BlockTextureData.list.Length;
+            var newLen = ((required / 256) + 1) * 256;
+            Array.Resize(ref BlockTextureData.list, newLen);
+            Log.Out("[PaintUnlocked] Pre-resized BlockTextureData.list {0} -> {1}", oldLen, newLen);
+        }
+        // ToDo: Resize UvMapping in once go here!?
+        for (int i = 0; i < textures.Count; i++)
+        {

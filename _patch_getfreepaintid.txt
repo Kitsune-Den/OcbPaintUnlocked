@@ -1,0 +1,10 @@
+    static int GetFreePaintID()
+    {
+        for (var i = 0; i < BlockTextureData.list.Length; i++)
+            if (BlockTextureData.list[i] == null) return i;
+        // PaintUnlocked: extend the list instead of throwing
+        var oldLen = BlockTextureData.list.Length;
+        Array.Resize(ref BlockTextureData.list, oldLen + 256);
+        Log.Out("[PaintUnlocked] Extended BlockTextureData.list from {0} to {1}", oldLen, BlockTextureData.list.Length);
+        return oldLen;
+    }

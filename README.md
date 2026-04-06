@@ -1,22 +1,40 @@
-# OCB Core Mod for Custom Texture Atlas  - 7 Days to Die (V2.1) Addon
+# OcbCustomTextures -- PaintUnlocked Fork
 
-This mod doesn't do much on it's own, but it allows other mods to
-add custom (opaque) block paints and grass/plant textures.
+> **This is a fork of [ocbMaurice's OcbCustomTextures](https://github.com/OCB7D2D/OcbCustomTextures)** with compatibility patches for [PaintUnlocked](https://github.com/AdaInTheLab/PaintUnlocked), which breaks the 255 paint texture limit in 7 Days to Die.
+>
+> All credit for the original mod goes to **ocbMaurice** ([OCB7D2D](https://github.com/OCB7D2D)). This fork adds only the changes needed to support 256+ paint textures. If you don't need PaintUnlocked, use the [upstream version](https://github.com/OCB7D2D/OcbCustomTextures) instead.
 
-See demo mods some sample configs and resources!
+## What this fork changes
+
+- **Dynamic array resizing**: `BlockTextureData.list` is resized on demand instead of throwing when full, allowing paint packs to exceed 255 entries.
+- **512 ID floor**: Both server and client pad `builtinOpaques` to 512 before assigning custom paint IDs, ensuring identical allocation on both sides.
+- **Atlas size fix**: `ResizeTextureArray` uses `max(texture.depth, builtinOpaques) + OpaquesAdded + 4` so GPU slots above 512 are actually allocated.
+- **Dedicated server fallback**: Handles `builtinOpaques = 0` (no GPU) gracefully instead of falling through to incorrect ID assignment.
+- **Pre-resize on init**: `BlockTextureData.list` is pre-expanded to fit the 512 floor + expected custom paints, preventing index-out-of-range during tiling assignment.
+
+## Installation
+
+1. Install [PaintUnlocked](https://github.com/AdaInTheLab/PaintUnlocked) on server and all clients.
+2. Replace the standard OcbCustomTextures with this fork on server and all clients.
+3. Install your paint packs as usual.
+4. A **fresh world is required** for correct 10-bit paint storage.
+
+---
+
+*The rest of this README is the original OcbCustomTextures documentation by ocbMaurice.*
+
+---
+
+This mod allows other mods to add custom (opaque) block paints and grass/plant textures.
+
+See demo mods for sample configs and resources:
 
 - https://github.com/OCB7D2D/OcbCustomTexturesPaints
 - https://github.com/OCB7D2D/OcbCustomTexturesPlants
 
-[![GitHub CI Compile Status][10]][9]
-
 ### Download and Install
 
-End-Users are encouraged to download my mods from [NexusMods][11].  
-Every download there helps me to buy stuff for mod development.
-
-Otherwise please use one of the [official releases][12] here.  
-Only clone or download the repo if you know what you do!
+For the **standard version** (without PaintUnlocked support), use the [upstream releases](https://github.com/OCB7D2D/OcbCustomTextures/releases) or [NexusMods][11].
 
 ## Custom Block Paints
 
@@ -237,6 +255,12 @@ Vanilla has two additional configs for paints:
 These seem implemented fully, but unused for now!
 
 ## Changelog
+
+### Version 0.8.1-paintunlocked (Fork)
+
+- PaintUnlocked compatibility: dynamic array resizing, 512 ID floor, atlas size fix
+- Dedicated server fallback for builtinOpaques = 0
+- Pre-resize BlockTextureData.list on init
 
 ### Version 0.8.0
 
