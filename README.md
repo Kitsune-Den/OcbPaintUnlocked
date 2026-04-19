@@ -1,5 +1,10 @@
 # OcbCustomTextures — KitsunePaintUnlocked Fork
 
+[![Ships with KitsunePaintUnlocked](https://img.shields.io/badge/Ships_with-KitsunePaintUnlocked-da8e35?style=flat&logo=nexusmods&logoColor=white)](https://www.nexusmods.com/7daystodie/mods/10059)
+[![Upstream](https://img.shields.io/badge/upstream-OCB7D2D%2FOcbCustomTextures-informational?style=flat&logo=github)](https://github.com/OCB7D2D/OcbCustomTextures)
+[![7 Days to Die V2.0+](https://img.shields.io/badge/7_Days_to_Die-V2.0%2B-8b0000?style=flat)](https://7daystodie.com)
+[![License](https://img.shields.io/github/license/Kitsune-Den/OcbPaintUnlocked?style=flat)](LICENSE)
+
 > **This is a fork of [ocbMaurice's OcbCustomTextures](https://github.com/OCB7D2D/OcbCustomTextures)** with compatibility patches for [KitsunePaintUnlocked](https://github.com/Kitsune-Den/KitsunePaintUnlocked), which breaks the 255 paint texture limit in 7 Days to Die.
 >
 > All credit for the original mod goes to **ocbMaurice** ([OCB7D2D](https://github.com/OCB7D2D)). This fork adds only the changes needed to support 256+ paint textures. If you don't need PaintUnlocked, use the [upstream version](https://github.com/OCB7D2D/OcbCustomTextures) instead.
