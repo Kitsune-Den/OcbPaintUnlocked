@@ -1,6 +1,6 @@
-# OcbCustomTextures -- PaintUnlocked Fork
+# OcbCustomTextures — KitsunePaintUnlocked Fork
 
-> **This is a fork of [ocbMaurice's OcbCustomTextures](https://github.com/OCB7D2D/OcbCustomTextures)** with compatibility patches for [PaintUnlocked](https://github.com/AdaInTheLab/PaintUnlocked), which breaks the 255 paint texture limit in 7 Days to Die.
+> **This is a fork of [ocbMaurice's OcbCustomTextures](https://github.com/OCB7D2D/OcbCustomTextures)** with compatibility patches for [KitsunePaintUnlocked](https://github.com/Kitsune-Den/KitsunePaintUnlocked), which breaks the 255 paint texture limit in 7 Days to Die.
 >
 > All credit for the original mod goes to **ocbMaurice** ([OCB7D2D](https://github.com/OCB7D2D)). This fork adds only the changes needed to support 256+ paint textures. If you don't need PaintUnlocked, use the [upstream version](https://github.com/OCB7D2D/OcbCustomTextures) instead.
 
@@ -14,7 +14,7 @@
 
 ## Installation
 
-1. Install [PaintUnlocked](https://github.com/AdaInTheLab/PaintUnlocked) on server and all clients.
+1. Install [KitsunePaintUnlocked](https://github.com/Kitsune-Den/KitsunePaintUnlocked) on server and all clients.
 2. Replace the standard OcbCustomTextures with this fork on server and all clients.
 3. Install your paint packs as usual.
 4. A **fresh world is required** for correct 10-bit paint storage.
