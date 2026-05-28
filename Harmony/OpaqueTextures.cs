@@ -149,6 +149,19 @@ public static class OpaqueTextures
             Log.Out("[OcbCustomTextures] Dedicated server: no diffuse texture, builtinOpaques clamped to 0");
         }
         var textures = OpaqueConfigs.Values.ToList();
+        // Pre-resize BlockTextureData.list to fit the about-to-be-
+        // assigned paint IDs. Grows in 256-slot blocks so a small
+        // config gets a small bump and a large pack doesn't trigger
+        // a resize per registered paint.
+        var idFloor = System.Math.Max(builtinOpaques, 512);
+        var required = idFloor + textures.Count + 1;
+        if (BlockTextureData.list != null && required > BlockTextureData.list.Length)
+        {
+            var oldLen2 = BlockTextureData.list.Length;
+            var newLen2 = ((required / 256) + 1) * 256;
+            Array.Resize(ref BlockTextureData.list, newLen2);
+            Log.Out("[OcbCustomTextures] Pre-resized BlockTextureData.list {0} -> {1}", oldLen2, newLen2);
+        }
         if (opaque == null) throw new Exception("MESH MISSING");
         var atlas = opaque.textureAtlas as TextureAtlasBlocks;
         if (atlas == null) throw new Exception("INVALID ATLAS TYPE");
