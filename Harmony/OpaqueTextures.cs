@@ -66,7 +66,16 @@ public static class OpaqueTextures
     {
         for (var i = 0; i < BlockTextureData.list.Length; i++)
             if (BlockTextureData.list[i] == null) return i;
-        throw new Exception("No more free Paint IDs");
+        // Was: throw new Exception("No more free Paint IDs"). Grow the
+        // backing array instead so a paint pack with more entries than
+        // the current capacity registers cleanly. This only fires when
+        // the array is genuinely full, so vanilla-sized configs never
+        // hit it.
+        var oldLen = BlockTextureData.list.Length;
+        Array.Resize(ref BlockTextureData.list, oldLen + 256);
+        Log.Out("[OcbCustomTextures] BlockTextureData.list grown {0} -> {1} to make room for new paint",
+            oldLen, BlockTextureData.list.Length);
+        return oldLen;
     }
 
     private static ushort PatchAtlasBlocks(MeshDescription mesh, TextureConfig tex)
