@@ -100,6 +100,16 @@ public static class OpaqueTextures
         var opaqueAtlas = opaque.textureAtlas as TextureAtlasBlocks;
         if (builtinOpaques == -1 && opaqueAtlas.diffuseTexture != null)
             builtinOpaques = (opaqueAtlas.diffuseTexture as Texture2DArray).depth;
+        // Dedicated server has no GPU atlas, so the diffuse texture
+        // check above never resolves a depth. Treating that as -1 falls
+        // through to incorrect ID assignment downstream; clamp to 0 so
+        // the headless install runs cleanly. tiling.index is a render
+        // concern, so leaving it 0 on server is fine.
+        if (builtinOpaques == -1)
+        {
+            builtinOpaques = 0;
+            Log.Out("[OcbCustomTextures] Dedicated server: no diffuse texture, builtinOpaques clamped to 0");
+        }
         var textures = OpaqueConfigs.Values.ToList();
         if (opaque == null) throw new Exception("MESH MISSING");
         var atlas = opaque.textureAtlas as TextureAtlasBlocks;
