@@ -56,11 +56,40 @@ public static class OpaqueTextures
     public class BlockTexturesFromXMLCreateBlockTexturesPrefix
     {
         public static void Prefix(XmlFile _xmlFile)
-            => ParseOpaqueConfig(_xmlFile.XmlDoc.Root);
+        {
+            ParseOpaqueConfig(_xmlFile.XmlDoc.Root);
+            // Pre-size BlockTextureData.list BEFORE any chunk
+            // deserialization can access high paint IDs from saved
+            // data. Without this, reloading a save built against a
+            // larger texture set than the current process can fit
+            // throws IndexOutOfRange from the chunk-paint accessor.
+            EarlyResizeBlockTextureList();
+        }
     }
 
-    // ####################################################################
-    // ####################################################################
+    static void EarlyResizeBlockTextureList()
+    {
+        // Generous floor: covers the existing vanilla range plus a
+        // sensible margin so a paint pack with several hundred
+        // entries doesn't trigger a resize during config-load. The
+        // GetFreePaintID safety net below grows the array further
+        // on demand if a config truly exceeds this.
+        const int minSize = 1024;
+        if (BlockTextureData.list == null)
+        {
+            BlockTextureData.list = new BlockTextureData[minSize];
+            Log.Out("[OcbCustomTextures] Created BlockTextureData.list (was null) size={0}", minSize);
+            return;
+        }
+        var required = System.Math.Max(minSize, 512 + OpaqueConfigs.Count + 256);
+        if (BlockTextureData.list.Length < required)
+        {
+            var oldLen = BlockTextureData.list.Length;
+            Array.Resize(ref BlockTextureData.list, required);
+            Log.Out("[OcbCustomTextures] Pre-resized BlockTextureData.list {0} -> {1} (save reload protection)",
+                oldLen, required);
+        }
+    }
 
     static int GetFreePaintID()
     {
