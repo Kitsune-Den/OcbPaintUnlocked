@@ -91,6 +91,36 @@ public static class OpaqueTextures
         }
     }
 
+    // Safety net: if any code path tries to access
+    // BlockTextureData.list with an index >= Length, auto-grow.
+    // Catches chunk deserialization that runs before InitOpaqueConfig
+    // has a chance to size the array. No-op for the common case
+    // where the array is already large enough.
+
+    [HarmonyPatch(typeof(BlockTextureData), nameof(BlockTextureData.Init))]
+    static class BlockTextureDataInitPatch
+    {
+        static bool Prefix(BlockTextureData __instance)
+        {
+            if (BlockTextureData.list == null)
+            {
+                BlockTextureData.list = new BlockTextureData[System.Math.Max(1024, __instance.ID + 256)];
+                Log.Out("[OcbCustomTextures] Created BlockTextureData.list on-demand for ID {0}, size={1}",
+                    __instance.ID, BlockTextureData.list.Length);
+                return true;
+            }
+            if (__instance.ID >= BlockTextureData.list.Length)
+            {
+                var oldLen = BlockTextureData.list.Length;
+                var newLen = System.Math.Max(1024, (((__instance.ID + 1) / 256) + 1) * 256);
+                Array.Resize(ref BlockTextureData.list, newLen);
+                Log.Out("[OcbCustomTextures] Safety resize for ID {0}: {1} -> {2}",
+                    __instance.ID, oldLen, newLen);
+            }
+            return true; // continue with original Init
+        }
+    }
+
     static int GetFreePaintID()
     {
         for (var i = 0; i < BlockTextureData.list.Length; i++)
