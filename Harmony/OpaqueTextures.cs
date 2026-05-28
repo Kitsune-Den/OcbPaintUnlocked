@@ -328,8 +328,13 @@ public static class OpaqueTextures
         if (OpaquesAdded == 0) return texture;
         if (GameManager.IsDedicatedServer) return texture;
         if (!texture.name.StartsWith("ta_opaque")) return texture;
+        // Was: texture.depth + OpaquesAdded. That undersizes the
+        // atlas whenever builtinOpaques > texture.depth (e.g. when the
+        // initial texture was allocated against an older atlas size).
+        // Max() keeps the original behavior in the common case where
+        // texture.depth >= builtinOpaques.
         var copy = ResizeTextureArray(cmds, texture,
-            texture.depth + OpaquesAdded, true, true);
+            System.Math.Max(texture.depth, builtinOpaques) + OpaquesAdded, true, true);
         foreach (TextureConfig cfg in OpaqueConfigs.Values)
             for (int i = 0; i < cfg.Length; i += 1)
                 PatchTextures(cmds, copy, lookup(cfg), cfg.tiling, i, fallback);
