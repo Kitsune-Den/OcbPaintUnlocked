@@ -238,17 +238,9 @@ These seem implemented fully, but unused for now!
 
 ## Changelog
 
-### Version 0.8.1.10402
+### Unreleased
 
-- Make the fork identifiable in a support log. Previously `ModInfo.xml` carried a bare `0.8.1`, so 7DTD logged `Loaded Mod: OcbCustomTextures (0.8.1)` -- indistinguishable from stock upstream, and PaintUnlocked's `INCOMPATIBLE OcbCustomTextures` diagnostic (which echoes `Reported version:`) could not confirm which build a user had actually installed.
-
-  The version is now `{upstream base}.{encoded PaintUnlocked version}`, where the fourth component encodes PaintUnlocked's semver as `major * 10000 + minor * 100 + patch`. So `0.8.1.10402` is upstream 0.8.1 paired with PaintUnlocked 1.4.2. Minor and patch must each stay below 100 for the encoding to remain unambiguous.
-
-  A four-part numeric version is used rather than a `-pu1.4.2` suffix because 7DTD parses `<Version>` with `System.Version.TryParse`. A non-numeric suffix does not fail mod load (`TryParse` does not throw), but it leaves `Mod.Version` null, which logs `does not define a valid Version` on every boot and makes the `mod_version()` XML-patch condition read the mod as `0.0`. The numeric form keeps `Mod.Version` populated, stays silent, and is still unmistakably not stock.
-
-### Version 0.8.1
-
-- Rebuild for 7D2D V3.0 "Dead Hot Summer" (paint-limit-1023 fork). No source changes to the paint-limit logic — the texture-atlas API is unchanged. Added a `netstandard` reference so the project builds without a globally-installed .NET Framework 4.8 Developer Pack.
+- Rebuild for 7D2D V3.0 "Dead Hot Summer". No source changes to the texture-atlas API were needed. Added a `netstandard` reference so the project builds without a globally-installed .NET Framework 4.8 Developer Pack.
 
 ### Version 0.8.0
 
