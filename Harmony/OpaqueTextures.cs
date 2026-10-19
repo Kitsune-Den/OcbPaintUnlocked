@@ -195,6 +195,16 @@ public static class OpaqueTextures
         if (opaque == null) throw new Exception("MESH MISSING");
         var atlas = opaque.textureAtlas as TextureAtlasBlocks;
         if (atlas == null) throw new Exception("INVALID ATLAS TYPE");
+        // GPU texture arrays have a hard slice cap (2048 on D3D11). If the
+        // combined paint packs need more, ResizeTextureArray throws and
+        // takes all of painting.xml down with it. Register what fits and
+        // skip the rest. Stopping at the first overflow (instead of
+        // squeezing smaller tiles in after it) keeps the client's paint
+        // IDs a prefix of the server's, which registers everything.
+        var maxSlices = GameManager.IsDedicatedServer
+            ? int.MaxValue : SystemInfo.maxTextureArraySlices;
+        var skippedTextures = 0;
+        var skippedSlots = 0;
         // ToDo: Resize UvMapping in once go here!?
         for (int i = 0; i < textures.Count; i++)
         {
@@ -205,6 +215,14 @@ public static class OpaqueTextures
                 cfg.tiling.index = atlas.uvMapping[idx].index;
                 // ToDo: allow to overwrite any other data?
                 // Can already be done with xml patching!
+            }
+            else if (skippedTextures > 0 ||
+                builtinOpaques + OpaquesAdded + cfg.Length > maxSlices)
+            {
+                // Drop it so ApplyTextures doesn't copy it into the atlas
+                OpaqueConfigs.Remove(cfg.ID);
+                skippedTextures += 1;
+                skippedSlots += cfg.Length;
             }
             else
             {
@@ -227,6 +245,12 @@ public static class OpaqueTextures
                 data.Init(); // does exactly the same
             }
         }
+        if (skippedTextures > 0) Log.Error(
+            "[OcbCustomTextures] Too many custom textures: they need {0} texture slots, " +
+            "but your graphics card supports at most {1}. Skipped the last {2} textures " +
+            "({3} slots); they will be missing from the paint menu. Remove a texture or " +
+            "paint pack to make room.", builtinOpaques + OpaquesAdded + skippedSlots,
+            maxSlices, skippedTextures, skippedSlots);
         // Patch textures right away
         // Re-Do when options change
         PatchCustomOpaques();
