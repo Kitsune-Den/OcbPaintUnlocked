@@ -41,12 +41,16 @@ public static class OcbTextureUtils
         readonly int mipmapsReduction = 0;
         readonly bool streamingMips = false;
         readonly float mipSlope = 0.6776996f;
+        // True when switching to full quality changes anything, in which
+        // case Unity uploads textures again (see CompatCustomAvatars)
+        readonly bool switched = false;
         public ResetQualitySettings()
         {
             masterTextureLimit = QualitySettings.globalTextureMipmapLimit;
             streamingMips = QualitySettings.streamingMipmapsActive;
             mipmapsReduction = QualitySettings.streamingMipmapsMaxLevelReduction;
             mipSlope = Shader.GetGlobalFloat("_MipSlope");
+            switched = masterTextureLimit != 0 || streamingMips || mipmapsReduction != 0;
             QualitySettings.globalTextureMipmapLimit = 0;
             QualitySettings.streamingMipmapsActive = false;
             QualitySettings.streamingMipmapsMaxLevelReduction = 0;
@@ -58,6 +62,7 @@ public static class OcbTextureUtils
             QualitySettings.streamingMipmapsActive = streamingMips;
             QualitySettings.streamingMipmapsMaxLevelReduction = mipmapsReduction;
             Shader.SetGlobalFloat("_MipSlope", mipSlope);
+            if (switched) CompatCustomAvatars.RequestThumbnailRefresh();
         }
     }
 
