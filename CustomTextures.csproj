@@ -98,6 +98,7 @@
     <Compile Include="Utils\HarmonyPropertyProxy.cs" />
     <Compile Include="Utils\OcbTextureDumper.cs" />
     <Compile Include="Utils\OcbTextureUtils.cs" />
+    <Compile Include="Utils\CompatCustomAvatars.cs" />
     <Compile Include="Library\CustomTexturesCmd.cs" />
     <Compile Include="Harmony\CustomTextures.cs" />
     <Compile Include="Library\HelperGrassTextures.cs" />

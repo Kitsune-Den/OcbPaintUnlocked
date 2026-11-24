@@ -314,6 +314,7 @@ public static class OpaqueTextures
         QualitySettings.globalTextureMipmapLimit = 0;
         Graphics.ExecuteCommandBufferAsync(cmds, ComputeQueueType.Default);
         QualitySettings.globalTextureMipmapLimit = old;
+        if (old != 0) CompatCustomAvatars.RequestThumbnailRefresh();
         // Post patch, since our xml config is loaded too late
         OcbCustomTextures.ReleaseTexture(diff2Darr, diff2Dcpy);
         opaque.TexDiffuse = atlas.diffuseTexture = diff2Dcpy;
